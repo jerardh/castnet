@@ -1,0 +1,9 @@
+# csv files
+.csv
+#embedding file
+.pkl
+.npy
+
+#embedding model
+all-MiniLM-L6-v2/
+results/

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CastNet</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<h2>🎬 CastNet – Smart Actor Recommendation</h2>
+
+<form method="POST">
+    <label>Movie Plot</label>
+    <textarea name="plot" rows="4" required></textarea>
+
+    <label>Character Description</label>
+    <textarea name="character_description" rows="2" required></textarea>
+
+    <label>Preferred Gender</label>
+    <select name="gender">
+        <option value="">Any</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+    </select>
+
+    <label>Preferred Age Group</label>
+    <select name="age_group">
+        <option value="">Any</option>
+        <option value="20-30">20-30</option>
+        <option value="30-40">30-40</option>
+        <option value="40-50">40-50</option>
+    </select>
+
+    <br>
+    <button type="submit">🎯 Get Actor Suggestions</button>
+</form>
+
+{% if results %}
+<div class="results">
+    <h3>🎭 Recommended Actors</h3>
+
+    {% for row in results %}
+    <div class="actor-card">
+        <div class="actor-name">{{ row.actor_name }}</div>
+        <div class="meta">🎬 Movie: {{ row.movie_name }}</div>
+        <div class="meta">🎭 Role: {{ row.character_name }}</div>
+        <div class="meta">👤 Gender: {{ row.gender }}</div>
+        <div class="meta">🎂 Age Group: {{ row.age_group }}</div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+</body>
+</html>
