@@ -3,6 +3,25 @@
 <head>
     <title>CastNet</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        function addCharacterField(value="") {
+            const container = document.getElementById("character-container");
+
+            const div = document.createElement("div");
+            div.className = "char-block";
+
+            div.innerHTML = `
+                <textarea name="character_description[]" rows="2" required placeholder="Describe character...">${value}</textarea>
+                <button type="button" onclick="removeCharacterField(this)">❌</button>
+            `;
+
+            container.appendChild(div);
+        }
+
+        function removeCharacterField(btn) {
+            btn.parentElement.remove();
+        }
+    </script>
 </head>
 <body>
 
@@ -13,8 +32,27 @@
     <label>Movie Plot</label>
     <textarea name="plot" rows="4" required>{{ request.form.get('plot', '') }}</textarea>
 
-    <label>Character Description</label>
-    <textarea name="character_description" rows="2" required>{{ request.form.get('character_description', '') }}</textarea>
+    <label>Character Descriptions</label>
+
+    <div id="character-container">
+        {% if request.form.getlist('character_description[]') %}
+            {% for desc in request.form.getlist('character_description[]') %}
+                <div class="char-block">
+                    <textarea name="character_description[]" rows="2" required>{{ desc }}</textarea>
+                    <button type="button" onclick="removeCharacterField(this)">❌</button>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="char-block">
+                <textarea name="character_description[]" rows="2" required></textarea>
+                <button type="button" onclick="removeCharacterField(this)">❌</button>
+            </div>
+        {% endif %}
+    </div>
+    <br>
+    <button type="button" onclick="addCharacterField()">➕ Add Character</button>
+
+    <br><br>
 
     <label>Preferred Gender</label>
     <select name="gender">
