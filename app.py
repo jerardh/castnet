@@ -84,93 +84,94 @@ def home():
 
 @app.route("/predict", methods=["GET", "POST"])
 def predict():
-    results = []
+    results = {}
 
     if request.method == "POST":
         # ---------------------------
-        # Read user input
+        # Read plot
         # ---------------------------
         user_plot = request.form.get("plot", "").strip()
-        user_character_desc = request.form.get("character_description", "").strip()
-        user_gender = request.form.get("gender", "").strip().lower()
-        raw_age_group = request.form.get("age_group", "").strip().lower()
 
         # ---------------------------
-        # Map UI age group → dataset age group
+        # Collect character inputs
+        # ---------------------------
+        characters = []
+
+        for i in range(1, 4):  # supports 3 characters
+            desc = request.form.get(f"char_desc_{i}", "").strip()
+            gender = request.form.get(f"gender_{i}", "").strip().lower()
+            raw_age = request.form.get(f"age_{i}", "").strip().lower()
+
+            if desc:
+                characters.append({
+                    "name": f"Character {i}",
+                    "desc": desc,
+                    "gender": gender,
+                    "raw_age": raw_age
+                })
+
+        # ---------------------------
+        # Age mapping
         # ---------------------------
         AGE_MAP = {
             "0-20": "teen",
             "teen": "teen",
-
             "20-30": "young",
             "20s": "young",
             "young": "young",
-
             "30-40": "adult",
             "30s": "adult",
             "adult": "adult",
-
             "40-50": "middle",
             "40s": "middle",
             "50-60": "middle",
             "50s": "middle",
             "middle": "middle",
-
             "60+": "senior",
             "senior": "senior"
         }
 
-        user_age_group = AGE_MAP.get(raw_age_group, "")
+        # ---------------------------
+        # Process each character
+        # ---------------------------
+        for char in characters:
+            user_age_group = AGE_MAP.get(char["raw_age"], "")
+            user_gender = char["gender"]
 
-        print("USER AGE GROUP:", user_age_group)
+            query_text = (
+                user_plot +
+                ". Character: " + char["desc"] +
+                f". Gender: {user_gender}. Age group: {user_age_group}"
+            )
 
-        # ---------------------------
-        # Build query text (same style as training)
-        # ---------------------------
-        query_text = (
-            user_plot +
-            ". Character: " + user_character_desc +
-            f". Gender: {user_gender}. Age group: {user_age_group}"
-        )
+            # Encode
+            query_emb = model.encode([query_text])
+            scores = cosine_similarity(query_emb, embeddings)[0]
 
-        # ---------------------------
-        # Encode query
-        # ---------------------------
-        query_emb = model.encode([query_text])
-        scores = cosine_similarity(query_emb, embeddings)[0]
+            # Top candidates
+            top_idx = np.argsort(scores)[::-1][:100]
+            candidates = df.iloc[top_idx].copy()
+            candidates["similarity"] = scores[top_idx]
 
-        # ---------------------------
-        # Get top candidates
-        # ---------------------------
-        top_idx = np.argsort(scores)[::-1][:100]
-        candidates = df.iloc[top_idx].copy()
-        candidates["similarity"] = scores[top_idx]
+            # Normalize
+            candidates["gender"] = candidates["gender"].astype(str).str.strip().str.lower()
+            candidates["age_group"] = candidates["age_group"].astype(str).str.strip().str.lower()
 
-        # ---------------------------
-        # Normalize columns
-        # ---------------------------
-        candidates["gender"] = candidates["gender"].astype(str).str.strip().str.lower()
-        candidates["age_group"] = candidates["age_group"].astype(str).str.strip().str.lower()
+            # Hard filters
+            if user_gender:
+                candidates = candidates[candidates["gender"] == user_gender]
 
-        print("DATASET AGE GROUPS:", candidates["age_group"].unique())
+            if user_age_group:
+                candidates = candidates[candidates["age_group"] == user_age_group]
 
-        # ---------------------------
-        # Apply HARD filters
-        # ---------------------------
-        if user_gender:
-            candidates = candidates[candidates["gender"] == user_gender]
+            # Final results per character
+            results[char["name"]] = candidates.head(5)[
+                ["actor_name", "movie_name", "character_name", "gender", "age_group"]
+            ].to_dict(orient="records")
 
-        if user_age_group:
-            candidates = candidates[candidates["age_group"] == user_age_group]
-
-        # ---------------------------
-        # Final output
-        # ---------------------------
-        results = candidates.head(5)[
-            ["actor_name", "movie_name", "character_name", "gender", "age_group"]
-        ].to_dict(orient="records")
-    print("AGE GROUP COUNTS=",df["age_group"].value_counts())
     return render_template("index.html", results=results)
+
+
 
 
 if __name__ == "__main__":

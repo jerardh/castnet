@@ -3,25 +3,6 @@
 <head>
     <title>CastNet</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script>
-        function addCharacterField(value="") {
-            const container = document.getElementById("character-container");
-
-            const div = document.createElement("div");
-            div.className = "char-block";
-
-            div.innerHTML = `
-                <textarea name="character_description[]" rows="2" required placeholder="Describe character...">${value}</textarea>
-                <button type="button" onclick="removeCharacterField(this)">❌</button>
-            `;
-
-            container.appendChild(div);
-        }
-
-        function removeCharacterField(btn) {
-            btn.parentElement.remove();
-        }
-    </script>
 </head>
 <body>
 
@@ -30,70 +11,98 @@
 <form method="POST">
 
     <label>Movie Plot</label>
-    <textarea name="plot" rows="4" required>{{ request.form.get('plot', '') }}</textarea>
+    <textarea name="plot" rows="4" required>{{ request.form.get('plot','') }}</textarea>
 
-    <label>Character Descriptions</label>
+    <hr>
+    <h3>🎭 Character 1</h3>
+    <label>Description</label>
+    <textarea name="char_desc_1" rows="2" required>{{ request.form.get('char_desc_1','') }}</textarea>
 
-    <div id="character-container">
-        {% if request.form.getlist('character_description[]') %}
-            {% for desc in request.form.getlist('character_description[]') %}
-                <div class="char-block">
-                    <textarea name="character_description[]" rows="2" required>{{ desc }}</textarea>
-                    <button type="button" onclick="removeCharacterField(this)">❌</button>
-                </div>
-            {% endfor %}
-        {% else %}
-            <div class="char-block">
-                <textarea name="character_description[]" rows="2" required></textarea>
-                <button type="button" onclick="removeCharacterField(this)">❌</button>
-            </div>
-        {% endif %}
-    </div>
-    <br>
-    <button type="button" onclick="addCharacterField()">➕ Add Character</button>
+    <label>Gender</label>
+    <select name="gender_1">
+        <option value="">Any</option>
+        <option value="male" {% if request.form.get('gender_1')=='male' %}selected{% endif %}>Male</option>
+        <option value="female" {% if request.form.get('gender_1')=='female' %}selected{% endif %}>Female</option>
+    </select>
+
+    <label>Age Group</label>
+    <select name="age_1">
+        <option value="">Any</option>
+        <option value="20-30" {% if request.form.get('age_1')=='20-30' %}selected{% endif %}>20-30</option>
+        <option value="30-40" {% if request.form.get('age_1')=='30-40' %}selected{% endif %}>30-40</option>
+        <option value="40-50" {% if request.form.get('age_1')=='40-50' %}selected{% endif %}>40-50</option>
+        <option value="60+" {% if request.form.get('age_1')=='60+' %}selected{% endif %}>60+</option>
+    </select>
+
+    <hr>
+    <h3>🎭 Character 2</h3>
+    <label>Description</label>
+    <textarea name="char_desc_2" rows="2">{{ request.form.get('char_desc_2','') }}</textarea>
+
+    <label>Gender</label>
+    <select name="gender_2">
+        <option value="">Any</option>
+        <option value="male" {% if request.form.get('gender_2')=='male' %}selected{% endif %}>Male</option>
+        <option value="female" {% if request.form.get('gender_2')=='female' %}selected{% endif %}>Female</option>
+    </select>
+
+    <label>Age Group</label>
+    <select name="age_2">
+        <option value="">Any</option>
+        <option value="20-30" {% if request.form.get('age_2')=='20-30' %}selected{% endif %}>20-30</option>
+        <option value="30-40" {% if request.form.get('age_2')=='30-40' %}selected{% endif %}>30-40</option>
+        <option value="40-50" {% if request.form.get('age_2')=='40-50' %}selected{% endif %}>40-50</option>
+        <option value="60+" {% if request.form.get('age_2')=='60+' %}selected{% endif %}>60+</option>
+    </select>
+
+    <hr>
+    <h3>🎭 Character 3</h3>
+    <label>Description</label>
+    <textarea name="char_desc_3" rows="2">{{ request.form.get('char_desc_3','') }}</textarea>
+
+    <label>Gender</label>
+    <select name="gender_3">
+        <option value="">Any</option>
+        <option value="male" {% if request.form.get('gender_3')=='male' %}selected{% endif %}>Male</option>
+        <option value="female" {% if request.form.get('gender_3')=='female' %}selected{% endif %}>Female</option>
+    </select>
+
+    <label>Age Group</label>
+    <select name="age_3">
+        <option value="">Any</option>
+        <option value="20-30" {% if request.form.get('age_3')=='20-30' %}selected{% endif %}>20-30</option>
+        <option value="30-40" {% if request.form.get('age_3')=='30-40' %}selected{% endif %}>30-40</option>
+        <option value="40-50" {% if request.form.get('age_3')=='40-50' %}selected{% endif %}>40-50</option>
+        <option value="60+" {% if request.form.get('age_3')=='60+' %}selected{% endif %}>60+</option>
+    </select>
 
     <br><br>
-
-    <label>Preferred Gender</label>
-    <select name="gender">
-        <option value="">Any</option>
-        <option value="male" {% if request.form.get('gender') == 'male' %}selected{% endif %}>Male</option>
-        <option value="female" {% if request.form.get('gender') == 'female' %}selected{% endif %}>Female</option>
-    </select>
-
-    <label>Preferred Age Group</label>
-    <select name="age_group">
-        <option value="">Any</option>
-        <option value="20-30" {% if request.form.get('age_group') == '20-30' %}selected{% endif %}>20-30</option>
-        <option value="30-40" {% if request.form.get('age_group') == '30-40' %}selected{% endif %}>30-40</option>
-        <option value="40-50" {% if request.form.get('age_group') == '40-50' %}selected{% endif %}>40-50</option>
-        <option value="60+" {% if request.form.get('age_group') == '60+' %}selected{% endif %}>60+</option>
-    </select>
-
-    <br>
     <button type="submit">🎯 Get Actor Suggestions</button>
 </form>
 
 {% if results %}
-<div class="results">
-    <h3>🎭 Recommended Actors</h3>
+<hr>
+<h2>🎬 Casting Results</h2>
 
-    {% for row in results %}
-    <div class="actor-card">
-        <div class="actor-name">{{ row.actor_name }}</div>
-        <div class="meta">🎬 Movie: {{ row.movie_name }}</div>
-        <div class="meta">🎭 Role: {{ row.character_name }}</div>
-        <div class="meta">👤 Gender: {{ row.gender }}</div>
-        <div class="meta">🎂 Age Group: {{ row.age_group }}</div>
-    </div>
-    {% endfor %}
-</div>
-
-{% elif request.method == "POST" %}
+{% for char, actors in results.items() %}
 <div class="results">
-    <h3>⚠️ No matching actors found</h3>
-    <p>Try changing age group, gender, or description.</p>
+    <h3>🎭 {{ char }}</h3>
+
+    {% if actors %}
+        {% for row in actors %}
+        <div class="actor-card">
+            <div class="actor-name">{{ row.actor_name }}</div>
+            <div class="meta">🎬 Movie: {{ row.movie_name }}</div>
+            <div class="meta">🎭 Role: {{ row.character_name }}</div>
+            <div class="meta">👤 Gender: {{ row.gender }}</div>
+            <div class="meta">🎂 Age Group: {{ row.age_group }}</div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>⚠️ No matching actors found for this character.</p>
+    {% endif %}
 </div>
+{% endfor %}
 {% endif %}
 
 </body>
