@@ -116,17 +116,21 @@ def predict():
         AGE_MAP = {
             "0-20": "teen",
             "teen": "teen",
+
             "20-30": "young",
             "20s": "young",
             "young": "young",
+
             "30-40": "adult",
             "30s": "adult",
             "adult": "adult",
+
             "40-50": "middle",
             "40s": "middle",
             "50-60": "middle",
             "50s": "middle",
             "middle": "middle",
+
             "60+": "senior",
             "senior": "senior"
         }
@@ -164,9 +168,9 @@ def predict():
             if user_age_group:
                 candidates = candidates[candidates["age_group"] == user_age_group]
 
-            # Final results per character
+            # Store results PER CHARACTER
             results[char["name"]] = candidates.head(5)[
-                ["actor_name", "movie_name", "character_name", "gender", "age_group"]
+                ["actor_name", "movie_name", "character_name", "gender", "age_group", "similarity"]
             ].to_dict(orient="records")
 
     return render_template("index.html", results=results)

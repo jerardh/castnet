@@ -13,70 +13,76 @@
     <label>Movie Plot</label>
     <textarea name="plot" rows="4" required>{{ request.form.get('plot','') }}</textarea>
 
-    <hr>
-    <h3>🎭 Character 1</h3>
-    <label>Description</label>
-    <textarea name="char_desc_1" rows="2" required>{{ request.form.get('char_desc_1','') }}</textarea>
+    <!-- CHARACTER 1 -->
+    <div class="character-card">
+        <h3>🎭 Character 1</h3>
+        <label>Description</label>
+        <textarea name="char_desc_1" rows="2" required>{{ request.form.get('char_desc_1','') }}</textarea>
 
-    <label>Gender</label>
-    <select name="gender_1">
-        <option value="">Any</option>
-        <option value="male" {% if request.form.get('gender_1')=='male' %}selected{% endif %}>Male</option>
-        <option value="female" {% if request.form.get('gender_1')=='female' %}selected{% endif %}>Female</option>
-    </select>
+        <label>Gender</label>
+        <select name="gender_1">
+            <option value="">Any</option>
+            <option value="male" {% if request.form.get('gender_1')=='male' %}selected{% endif %}>Male</option>
+            <option value="female" {% if request.form.get('gender_1')=='female' %}selected{% endif %}>Female</option>
+        </select>
 
-    <label>Age Group</label>
-    <select name="age_1">
-        <option value="">Any</option>
-        <option value="20-30" {% if request.form.get('age_1')=='20-30' %}selected{% endif %}>20-30</option>
-        <option value="30-40" {% if request.form.get('age_1')=='30-40' %}selected{% endif %}>30-40</option>
-        <option value="40-50" {% if request.form.get('age_1')=='40-50' %}selected{% endif %}>40-50</option>
-        <option value="60+" {% if request.form.get('age_1')=='60+' %}selected{% endif %}>60+</option>
-    </select>
+        <label>Age Group</label>
+        <select name="age_1">
+            <option value="">Any</option>
+            <option value="20-30" {% if request.form.get('age_1')=='20-30' %}selected{% endif %}>20-30</option>
+            <option value="30-40" {% if request.form.get('age_1')=='30-40' %}selected{% endif %}>30-40</option>
+            <option value="40-50" {% if request.form.get('age_1')=='40-50' %}selected{% endif %}>40-50</option>
+            <option value="60+" {% if request.form.get('age_1')=='60+' %}selected{% endif %}>60+</option>
+        </select>
+    </div>
 
-    <hr>
-    <h3>🎭 Character 2</h3>
-    <label>Description</label>
-    <textarea name="char_desc_2" rows="2">{{ request.form.get('char_desc_2','') }}</textarea>
+    <!-- CHARACTER 2 -->
+    <div class="character-card">
+        <h3>🎭 Character 2</h3>
+        <label>Description</label>
+        <textarea name="char_desc_2" rows="2">{{ request.form.get('char_desc_2','') }}</textarea>
 
-    <label>Gender</label>
-    <select name="gender_2">
-        <option value="">Any</option>
-        <option value="male" {% if request.form.get('gender_2')=='male' %}selected{% endif %}>Male</option>
-        <option value="female" {% if request.form.get('gender_2')=='female' %}selected{% endif %}>Female</option>
-    </select>
+        <label>Gender</label>
+        <select name="gender_2">
+            <option value="">Any</option>
+            <option value="male" {% if request.form.get('gender_2')=='male' %}selected{% endif %}>Male</option>
+            <option value="female" {% if request.form.get('gender_2')=='female' %}selected{% endif %}>Female</option>
+        </select>
 
-    <label>Age Group</label>
-    <select name="age_2">
-        <option value="">Any</option>
-        <option value="20-30" {% if request.form.get('age_2')=='20-30' %}selected{% endif %}>20-30</option>
-        <option value="30-40" {% if request.form.get('age_2')=='30-40' %}selected{% endif %}>30-40</option>
-        <option value="40-50" {% if request.form.get('age_2')=='40-50' %}selected{% endif %}>40-50</option>
-        <option value="60+" {% if request.form.get('age_2')=='60+' %}selected{% endif %}>60+</option>
-    </select>
+        <label>Age Group</label>
+        <select name="age_2">
+            <option value="">Any</option>
+            <option value="20-30" {% if request.form.get('age_2')=='20-30' %}selected{% endif %}>20-30</option>
+            <option value="30-40" {% if request.form.get('age_2')=='30-40' %}selected{% endif %}>30-40</option>
+            <option value="40-50" {% if request.form.get('age_2')=='40-50' %}selected{% endif %}>40-50</option>
+            <option value="60+" {% if request.form.get('age_2')=='60+' %}selected{% endif %}>60+</option>
+        </select>
+    </div>
 
-    <hr>
-    <h3>🎭 Character 3</h3>
-    <label>Description</label>
-    <textarea name="char_desc_3" rows="2">{{ request.form.get('char_desc_3','') }}</textarea>
+    <!-- CHARACTER 3 -->
+    <div class="character-card">
+        <h3>🎭 Character 3</h3>
+        <label>Description</label>
+        <textarea name="char_desc_3" rows="2">{{ request.form.get('char_desc_3','') }}</textarea>
 
-    <label>Gender</label>
-    <select name="gender_3">
-        <option value="">Any</option>
-        <option value="male" {% if request.form.get('gender_3')=='male' %}selected{% endif %}>Male</option>
-        <option value="female" {% if request.form.get('gender_3')=='female' %}selected{% endif %}>Female</option>
-    </select>
+        <label>Gender</label>
+        <select name="gender_3">
+            <option value="">Any</option>
+            <option value="male" {% if request.form.get('gender_3')=='male' %}selected{% endif %}>Male</option>
+            <option value="female" {% if request.form.get('gender_3')=='female' %}selected{% endif %}>Female</option>
+        </select>
 
-    <label>Age Group</label>
-    <select name="age_3">
-        <option value="">Any</option>
-        <option value="20-30" {% if request.form.get('age_3')=='20-30' %}selected{% endif %}>20-30</option>
-        <option value="30-40" {% if request.form.get('age_3')=='30-40' %}selected{% endif %}>30-40</option>
-        <option value="40-50" {% if request.form.get('age_3')=='40-50' %}selected{% endif %}>40-50</option>
-        <option value="60+" {% if request.form.get('age_3')=='60+' %}selected{% endif %}>60+</option>
-    </select>
+        <label>Age Group</label>
+        <select name="age_3">
+            <option value="">Any</option>
+            <option value="20-30" {% if request.form.get('age_3')=='20-30' %}selected{% endif %}>20-30</option>
+            <option value="30-40" {% if request.form.get('age_3')=='30-40' %}selected{% endif %}>30-40</option>
+            <option value="40-50" {% if request.form.get('age_3')=='40-50' %}selected{% endif %}>40-50</option>
+            <option value="60+" {% if request.form.get('age_3')=='60+' %}selected{% endif %}>60+</option>
+        </select>
+    </div>
 
-    <br><br>
+    <br>
     <button type="submit">🎯 Get Actor Suggestions</button>
 </form>
 
@@ -86,20 +92,39 @@
 
 {% for char, actors in results.items() %}
 <div class="results">
-    <h3>🎭 {{ char }}</h3>
+    <h3 class="character-result-title">🎭 {{ char }}</h3>
 
     {% if actors %}
         {% for row in actors %}
-        <div class="actor-card">
+        <div class="actor-card tooltip">
+
             <div class="actor-name">{{ row.actor_name }}</div>
-            <div class="meta">🎬 Movie: {{ row.movie_name }}</div>
-            <div class="meta">🎭 Role: {{ row.character_name }}</div>
             <div class="meta">👤 Gender: {{ row.gender }}</div>
             <div class="meta">🎂 Age Group: {{ row.age_group }}</div>
+
+            <!-- Similarity Bar -->
+            <div class="similarity-container">
+                <div class="similarity-label">
+                    Match: {{ (row.similarity * 100) | round(1) }}%
+                </div>
+                <div class="similarity-bar-bg">
+                    <div class="similarity-bar-fill"
+                         style="width: {{ (row.similarity * 100) | round(1) }}%;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hover Tooltip -->
+            <div class="tooltip-text">
+                <strong>Why this actor?</strong><br>
+                🎬 Similar Movie: {{ row.movie_name }}<br>
+                🎭 Similar Character: {{ row.character_name }}
+            </div>
+
         </div>
         {% endfor %}
     {% else %}
-        <p>⚠️ No matching actors found for this character.</p>
+        <p class="no-result">⚠️ No matching actors found for this character.</p>
     {% endif %}
 </div>
 {% endfor %}
