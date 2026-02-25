@@ -93,24 +93,6 @@ def predict():
         user_plot = request.form.get("plot", "").strip()
 
         # ---------------------------
-        # Collect character inputs
-        # ---------------------------
-        characters = []
-
-        for i in range(1, 4):  # supports 3 characters
-            desc = request.form.get(f"char_desc_{i}", "").strip()
-            gender = request.form.get(f"gender_{i}", "").strip().lower()
-            raw_age = request.form.get(f"age_{i}", "").strip().lower()
-
-            if desc:
-                characters.append({
-                    "name": f"Character {i}",
-                    "desc": desc,
-                    "gender": gender,
-                    "raw_age": raw_age
-                })
-
-        # ---------------------------
         # Age mapping
         # ---------------------------
         AGE_MAP = {
@@ -136,19 +118,35 @@ def predict():
         }
 
         # ---------------------------
+        # Find all character indexes dynamically
+        # ---------------------------
+        char_indexes = set()
+
+        for key in request.form.keys():
+            if key.startswith("char_desc_"):
+                idx = key.split("_")[-1]
+                char_indexes.add(idx)
+
+        # ---------------------------
         # Process each character
         # ---------------------------
-        for char in characters:
-            user_age_group = AGE_MAP.get(char["raw_age"], "")
-            user_gender = char["gender"]
+        for idx in sorted(char_indexes, key=int):
+            desc = request.form.get(f"char_desc_{idx}", "").strip()
+            gender = request.form.get(f"gender_{idx}", "").strip().lower()
+            raw_age = request.form.get(f"age_{idx}", "").strip().lower()
+
+            if not desc:
+                continue
+
+            user_age_group = AGE_MAP.get(raw_age, "")
 
             query_text = (
                 user_plot +
-                ". Character: " + char["desc"] +
-                f". Gender: {user_gender}. Age group: {user_age_group}"
+                ". Character: " + desc +
+                f". Gender: {gender}. Age group: {user_age_group}"
             )
 
-            # Encode
+            # Encode query
             query_emb = model.encode([query_text])
             scores = cosine_similarity(query_emb, embeddings)[0]
 
@@ -162,21 +160,18 @@ def predict():
             candidates["age_group"] = candidates["age_group"].astype(str).str.strip().str.lower()
 
             # Hard filters
-            if user_gender:
-                candidates = candidates[candidates["gender"] == user_gender]
+            if gender:
+                candidates = candidates[candidates["gender"] == gender]
 
             if user_age_group:
                 candidates = candidates[candidates["age_group"] == user_age_group]
 
-            # Store results PER CHARACTER
-            results[char["name"]] = candidates.head(5)[
+            # Store per character
+            results[f"Character {idx}"] = candidates.head(5)[
                 ["actor_name", "movie_name", "character_name", "gender", "age_group", "similarity"]
             ].to_dict(orient="records")
 
     return render_template("index.html", results=results)
-
-
-
 
 if __name__ == "__main__":
     app.run(debug=True)
