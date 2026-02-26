@@ -8,82 +8,24 @@
 
 <h2>🎬 CastNet – Smart Actor Recommendation</h2>
 
-<form method="POST">
+<form method="POST" action="/predict">
 
     <label>Movie Plot</label>
     <textarea name="plot" rows="4" required>{{ request.form.get('plot','') }}</textarea>
 
-    <!-- CHARACTER 1 -->
-    <div class="character-card">
-        <h3>🎭 Character 1</h3>
-        <label>Description</label>
-        <textarea name="char_desc_1" rows="2" required>{{ request.form.get('char_desc_1','') }}</textarea>
+    <div id="characters-container"></div>
 
-        <label>Gender</label>
-        <select name="gender_1">
-            <option value="">Any</option>
-            <option value="male" {% if request.form.get('gender_1')=='male' %}selected{% endif %}>Male</option>
-            <option value="female" {% if request.form.get('gender_1')=='female' %}selected{% endif %}>Female</option>
-        </select>
+    <button type="button" onclick="addCharacterCard()">➕ Add Character</button>
 
-        <label>Age Group</label>
-        <select name="age_1">
-            <option value="">Any</option>
-            <option value="20-30" {% if request.form.get('age_1')=='20-30' %}selected{% endif %}>20-30</option>
-            <option value="30-40" {% if request.form.get('age_1')=='30-40' %}selected{% endif %}>30-40</option>
-            <option value="40-50" {% if request.form.get('age_1')=='40-50' %}selected{% endif %}>40-50</option>
-            <option value="60+" {% if request.form.get('age_1')=='60+' %}selected{% endif %}>60+</option>
-        </select>
-    </div>
+    <br><br>
 
-    <!-- CHARACTER 2 -->
-    <div class="character-card">
-        <h3>🎭 Character 2</h3>
-        <label>Description</label>
-        <textarea name="char_desc_2" rows="2">{{ request.form.get('char_desc_2','') }}</textarea>
-
-        <label>Gender</label>
-        <select name="gender_2">
-            <option value="">Any</option>
-            <option value="male" {% if request.form.get('gender_2')=='male' %}selected{% endif %}>Male</option>
-            <option value="female" {% if request.form.get('gender_2')=='female' %}selected{% endif %}>Female</option>
-        </select>
-
-        <label>Age Group</label>
-        <select name="age_2">
-            <option value="">Any</option>
-            <option value="20-30" {% if request.form.get('age_2')=='20-30' %}selected{% endif %}>20-30</option>
-            <option value="30-40" {% if request.form.get('age_2')=='30-40' %}selected{% endif %}>30-40</option>
-            <option value="40-50" {% if request.form.get('age_2')=='40-50' %}selected{% endif %}>40-50</option>
-            <option value="60+" {% if request.form.get('age_2')=='60+' %}selected{% endif %}>60+</option>
-        </select>
-    </div>
-
-    <!-- CHARACTER 3 -->
-    <div class="character-card">
-        <h3>🎭 Character 3</h3>
-        <label>Description</label>
-        <textarea name="char_desc_3" rows="2">{{ request.form.get('char_desc_3','') }}</textarea>
-
-        <label>Gender</label>
-        <select name="gender_3">
-            <option value="">Any</option>
-            <option value="male" {% if request.form.get('gender_3')=='male' %}selected{% endif %}>Male</option>
-            <option value="female" {% if request.form.get('gender_3')=='female' %}selected{% endif %}>Female</option>
-        </select>
-
-        <label>Age Group</label>
-        <select name="age_3">
-            <option value="">Any</option>
-            <option value="20-30" {% if request.form.get('age_3')=='20-30' %}selected{% endif %}>20-30</option>
-            <option value="30-40" {% if request.form.get('age_3')=='30-40' %}selected{% endif %}>30-40</option>
-            <option value="40-50" {% if request.form.get('age_3')=='40-50' %}selected{% endif %}>40-50</option>
-            <option value="60+" {% if request.form.get('age_3')=='60+' %}selected{% endif %}>60+</option>
-        </select>
-    </div>
-
-    <br>
     <button type="submit">🎯 Get Actor Suggestions</button>
+</form>
+
+<!-- Separate form for plot similarity -->
+<form method="POST" action="/plot_similarity">
+    <input type="hidden" name="plot" value="{{ request.form.get('plot','') }}">
+    <button type="submit">📖 Find Similar Plots</button>
 </form>
 
 {% if results %}
@@ -92,7 +34,7 @@
 
 {% for char, actors in results.items() %}
 <div class="results">
-    <h3 class="character-result-title">🎭 {{ char }}</h3>
+    <h3>🎭 {{ char }}</h3>
 
     {% if actors %}
         {% for row in actors %}
@@ -102,7 +44,6 @@
             <div class="meta">👤 Gender: {{ row.gender }}</div>
             <div class="meta">🎂 Age Group: {{ row.age_group }}</div>
 
-            <!-- Similarity Bar -->
             <div class="similarity-container">
                 <div class="similarity-label">
                     Match: {{ (row.similarity * 100) | round(1) }}%
@@ -114,7 +55,6 @@
                 </div>
             </div>
 
-            <!-- Hover Tooltip -->
             <div class="tooltip-text">
                 <strong>Why this actor?</strong><br>
                 🎬 Similar Movie: {{ row.movie_name }}<br>
@@ -129,6 +69,68 @@
 </div>
 {% endfor %}
 {% endif %}
+
+<script>
+let characterCount = 0;
+
+// Restore characters after POST
+{% for key, val in request.form.items() %}
+    {% if key.startswith("char_desc_") %}
+        addCharacterCard(
+            "{{ val }}",
+            "{{ request.form.get('gender_' + key.split('_')[-1], '') }}",
+            "{{ request.form.get('age_' + key.split('_')[-1], '') }}"
+        );
+    {% endif %}
+{% endfor %}
+
+// If no characters (first load)
+if (characterCount === 0) {
+    addCharacterCard();
+}
+
+function addCharacterCard(desc="", gender="", age="") {
+    characterCount++;
+
+    const container = document.getElementById("characters-container");
+
+    const div = document.createElement("div");
+    div.className = "character-card";
+    div.id = `char-card-${characterCount}`;
+
+    div.innerHTML = `
+        <h3>🎭 Character ${characterCount}
+            <button type="button" onclick="removeCharacterCard(${characterCount})">❌</button>
+        </h3>
+
+        <label>Description</label>
+        <textarea name="char_desc_${characterCount}" rows="2" required>${desc}</textarea>
+
+        <label>Gender</label>
+        <select name="gender_${characterCount}">
+            <option value="">Any</option>
+            <option value="male" ${gender==="male"?"selected":""}>Male</option>
+            <option value="female" ${gender==="female"?"selected":""}>Female</option>
+        </select>
+
+        <label>Age Group</label>
+        <select name="age_${characterCount}">
+            <option value="">Any</option>
+            <option value="20-30" ${age==="20-30"?"selected":""}>20-30</option>
+            <option value="30-40" ${age==="30-40"?"selected":""}>30-40</option>
+            <option value="40-50" ${age==="40-50"?"selected":""}>40-50</option>
+            <option value="60+" ${age==="60+"?"selected":""}>60+</option>
+        </select>
+    `;
+
+    container.appendChild(div);
+}
+
+function removeCharacterCard(num) {
+    const card = document.getElementById(`char-card-${num}`);
+    if (card) card.remove();
+}
+</script>
 
 </body>
 </html>

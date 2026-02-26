@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Plot Similarity</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<h2>📚 Similar Movie Plots</h2>
+
+<a href="/">⬅ Back to Casting</a>
+<hr>
+
+{% if plots %}
+    {% for row in plots %}
+    <div class="actor-card">
+        <div class="actor-name">{{ row.movie_name }} ({{ row.year }})</div>
+        <div class="meta">📖 {{ row.short_plot }}</div>
+        <div class="meta">🔁 Similarity: {{ (row.similarity * 100) | round(1) }}%</div>
+    </div>
+    {% endfor %}
+{% else %}
+    <p>⚠️ No similar plots found.</p>
+{% endif %}
+
+</body>
+</html>

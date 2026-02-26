@@ -7,10 +7,16 @@ from sentence_transformers import SentenceTransformer
 app = Flask(__name__)
 
 # ---------------------------
-# Load model and embeddings
+# Load CASTING model + embeddings
 # ---------------------------
-model = SentenceTransformer("castnet_finetuned_model_cpu")
-embeddings = np.load("castnet_embeddings.npy")
+cast_model = SentenceTransformer("castnet_finetuned_model_cpu")
+cast_embeddings = np.load("castnet_embeddings.npy")
+
+# ---------------------------
+# Load PLOT model + embeddings
+# ---------------------------
+plot_model = SentenceTransformer("short_plot_similarity_model")
+plot_embeddings = np.load("short_plot_embeddings.npy")
 
 # ---------------------------
 # Load datasets
@@ -18,12 +24,14 @@ embeddings = np.load("castnet_embeddings.npy")
 movies_df = pd.read_csv("movies_with_plot.csv")
 roles_df = pd.read_csv("malayalam_movie_cast_dataset.csv")
 meta_df = pd.read_csv("actor_metadata.csv")
+short_plot_df = pd.read_csv("short_plot_dataset_clean.csv")
 
 # ---------------------------
 # Normalize movie names
 # ---------------------------
 movies_df["movie_name"] = movies_df["movie_name"].str.strip().str.lower()
 roles_df["movie_name"] = roles_df["movie_name"].str.strip().str.lower()
+short_plot_df["movie_name"] = short_plot_df["movie_name"].str.strip().str.lower()
 
 # ---------------------------
 # Merge roles + movies
@@ -51,7 +59,7 @@ df = pd.merge(
 df["gender"] = df["gender"].fillna("unknown").str.strip().str.lower()
 
 # ---------------------------
-# Build age group (mapped to dataset categories)
+# Build age group
 # ---------------------------
 CURRENT_YEAR = 2026
 df["age"] = CURRENT_YEAR - df["birth_year"]
@@ -76,102 +84,103 @@ df["age_group"] = df["age"].apply(map_age_to_group)
 df["input_text"] = df["plot"] + " Character: " + df["character_name"].fillna("")
 
 # ---------------------------
-# API ROUTES
+# HOME
 # ---------------------------
-@app.route("/")
+@app.route("/", methods=["GET"])
 def home():
-    return {"status": "CastNet API running"}
-
-@app.route("/predict", methods=["GET", "POST"])
+    return render_template("index.html")
+# ---------------------------
+# CASTING ROUTE
+# ---------------------------
+@app.route("/predict", methods=["POST"])
 def predict():
     results = {}
 
-    if request.method == "POST":
-        # ---------------------------
-        # Read plot
-        # ---------------------------
-        user_plot = request.form.get("plot", "").strip()
+    user_plot = request.form.get("plot", "").strip()
 
-        # ---------------------------
-        # Age mapping
-        # ---------------------------
-        AGE_MAP = {
-            "0-20": "teen",
-            "teen": "teen",
+    AGE_MAP = {
+        "0-20": "teen", "teen": "teen",
+        "20-30": "young", "20s": "young",
+        "30-40": "adult", "30s": "adult",
+        "40-50": "middle", "40s": "middle",
+        "50-60": "middle", "50s": "middle",
+        "60+": "senior", "senior": "senior"
+    }
 
-            "20-30": "young",
-            "20s": "young",
-            "young": "young",
+    char_indexes = set()
+    for key in request.form.keys():
+        if key.startswith("char_desc_"):
+            char_indexes.add(key.split("_")[-1])
 
-            "30-40": "adult",
-            "30s": "adult",
-            "adult": "adult",
+    for idx in sorted(char_indexes, key=int):
+        desc = request.form.get(f"char_desc_{idx}", "").strip()
+        gender = request.form.get(f"gender_{idx}", "").strip().lower()
+        raw_age = request.form.get(f"age_{idx}", "").strip().lower()
 
-            "40-50": "middle",
-            "40s": "middle",
-            "50-60": "middle",
-            "50s": "middle",
-            "middle": "middle",
+        if not desc:
+            continue
 
-            "60+": "senior",
-            "senior": "senior"
-        }
+        user_age_group = AGE_MAP.get(raw_age, "")
 
-        # ---------------------------
-        # Find all character indexes dynamically
-        # ---------------------------
-        char_indexes = set()
+        query_text = (
+            user_plot +
+            ". Character: " + desc +
+            f". Gender: {gender}. Age group: {user_age_group}"
+        )
 
-        for key in request.form.keys():
-            if key.startswith("char_desc_"):
-                idx = key.split("_")[-1]
-                char_indexes.add(idx)
+        query_emb = cast_model.encode([query_text])
+        scores = cosine_similarity(query_emb, cast_embeddings)[0]
 
-        # ---------------------------
-        # Process each character
-        # ---------------------------
-        for idx in sorted(char_indexes, key=int):
-            desc = request.form.get(f"char_desc_{idx}", "").strip()
-            gender = request.form.get(f"gender_{idx}", "").strip().lower()
-            raw_age = request.form.get(f"age_{idx}", "").strip().lower()
+        top_idx = np.argsort(scores)[::-1][:100]
+        candidates = df.iloc[top_idx].copy()
+        candidates["similarity"] = scores[top_idx]
 
-            if not desc:
-                continue
+        candidates["gender"] = candidates["gender"].astype(str).str.lower()
+        candidates["age_group"] = candidates["age_group"].astype(str).str.lower()
 
-            user_age_group = AGE_MAP.get(raw_age, "")
+        if gender:
+            candidates = candidates[candidates["gender"] == gender]
 
-            query_text = (
-                user_plot +
-                ". Character: " + desc +
-                f". Gender: {gender}. Age group: {user_age_group}"
-            )
+        if user_age_group:
+            candidates = candidates[candidates["age_group"] == user_age_group]
 
-            # Encode query
-            query_emb = model.encode([query_text])
-            scores = cosine_similarity(query_emb, embeddings)[0]
-
-            # Top candidates
-            top_idx = np.argsort(scores)[::-1][:100]
-            candidates = df.iloc[top_idx].copy()
-            candidates["similarity"] = scores[top_idx]
-
-            # Normalize
-            candidates["gender"] = candidates["gender"].astype(str).str.strip().str.lower()
-            candidates["age_group"] = candidates["age_group"].astype(str).str.strip().str.lower()
-
-            # Hard filters
-            if gender:
-                candidates = candidates[candidates["gender"] == gender]
-
-            if user_age_group:
-                candidates = candidates[candidates["age_group"] == user_age_group]
-
-            # Store per character
-            results[f"Character {idx}"] = candidates.head(5)[
-                ["actor_name", "movie_name", "character_name", "gender", "age_group", "similarity"]
-            ].to_dict(orient="records")
+        results[f"Character {idx}"] = candidates.head(5)[
+            ["actor_name", "movie_name", "character_name", "gender", "age_group", "similarity"]
+        ].to_dict(orient="records")
 
     return render_template("index.html", results=results)
 
+# ---------------------------
+# PLOT SIMILARITY ROUTE
+# ---------------------------
+@app.route("/plot_similarity", methods=["GET", "POST"])
+def plot_similarity():
+    results = []
+    user_plot = ""
+
+    if request.method == "POST":
+        user_plot = request.form.get("plot", "").strip()
+
+        if user_plot:
+            user_emb = plot_model.encode([user_plot])
+            similarities = cosine_similarity(user_emb, plot_embeddings)[0]
+
+            short_plot_df["similarity"] = similarities
+
+            top_matches = short_plot_df.sort_values(
+                by="similarity", ascending=False
+            ).head(10)
+
+            results = top_matches[[
+                "movie_name", "year", "short_plot", "similarity"
+            ]].to_dict(orient="records")
+
+    return render_template(
+        "plot_results.html",
+        results=results,
+        user_plot=user_plot
+    )
+
+# ---------------------------
 if __name__ == "__main__":
     app.run(debug=True)
