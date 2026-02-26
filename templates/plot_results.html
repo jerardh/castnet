@@ -1,27 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Plot Similarity</title>
+    <title>Similar Plots</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
-<h2>📚 Similar Movie Plots</h2>
+<h2>📖 Similar Movie Plots</h2>
 
-<a href="/">⬅ Back to Casting</a>
-<hr>
+<div class="user-plot-box">
+    <h3>📝 Your Plot</h3>
+    <p>{{ user_plot }}</p>
+</div>
 
-{% if plots %}
-    {% for row in plots %}
-    <div class="actor-card">
-        <div class="actor-name">{{ row.movie_name }} ({{ row.year }})</div>
-        <div class="meta">📖 {{ row.short_plot }}</div>
-        <div class="meta">🔁 Similarity: {{ (row.similarity * 100) | round(1) }}%</div>
+{% if results %}
+    {% for row in results %}
+    <div class="plot-card">
+
+        <h3>🎬 {{ row.movie_name | title }} ({{ row.year }})</h3>
+
+        <p class="short-plot">{{ row.short_plot }}</p>
+
+        <!-- Similarity -->
+        <div class="similarity-container">
+            <div class="similarity-label">
+                Match: {{ (row.similarity * 100) | round(1) }}%
+            </div>
+
+            <div class="similarity-bar-bg">
+                <div class="similarity-bar-fill"
+                     style="width: {{ (row.similarity * 100) | round(1) }}%;">
+                </div>
+            </div>
+        </div>
+
     </div>
     {% endfor %}
 {% else %}
-    <p>⚠️ No similar plots found.</p>
+    <p class="no-result">⚠️ No similar plots found.</p>
 {% endif %}
+
+<br>
+<button onclick="window.location.href='/'" class="back-button">
+    ⬅ Back to CastNet
+</button>
 
 </body>
 </html>

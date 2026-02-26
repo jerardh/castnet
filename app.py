@@ -153,34 +153,45 @@ def predict():
 # ---------------------------
 # PLOT SIMILARITY ROUTE
 # ---------------------------
-@app.route("/plot_similarity", methods=["GET", "POST"])
+@app.route("/plot_similarity", methods=["POST"])
 def plot_similarity():
-    results = []
-    user_plot = ""
+    user_plot = request.form.get("plot", "").strip()
 
-    if request.method == "POST":
-        user_plot = request.form.get("plot", "").strip()
+    if not user_plot:
+        return render_template(
+            "plot_results.html",
+            results=[],
+            user_plot="",
+            message="No plot provided"
+        )
 
-        if user_plot:
-            user_emb = plot_model.encode([user_plot])
-            similarities = cosine_similarity(user_emb, plot_embeddings)[0]
+    # Encode user plot
+    user_emb = plot_model.encode([user_plot])
 
-            short_plot_df["similarity"] = similarities
+    # Cosine similarity with dataset
+    similarities = cosine_similarity(user_emb, plot_embeddings)[0]
 
-            top_matches = short_plot_df.sort_values(
-                by="similarity", ascending=False
-            ).head(10)
+    # Attach similarity to dataframe
+    temp_df = short_plot_df.copy()
+    temp_df["similarity"] = similarities
 
-            results = top_matches[[
-                "movie_name", "year", "short_plot", "similarity"
-            ]].to_dict(orient="records")
+    # Sort and take top 5
+    top_matches = temp_df.sort_values(
+        by="similarity", ascending=False
+    ).head(5)
+
+    print("MAX SIM:", top_matches.iloc[0]["similarity"])
+    print("TOP 5:", top_matches["similarity"].tolist())
+
+    results = top_matches[
+        ["movie_name", "year", "short_plot", "similarity"]
+    ].to_dict(orient="records")
 
     return render_template(
         "plot_results.html",
         results=results,
         user_plot=user_plot
     )
-
 # ---------------------------
 if __name__ == "__main__":
     app.run(debug=True)
