@@ -8,10 +8,11 @@
 
 <h2>🎬 CastNet – Smart Actor Recommendation</h2>
 
-<form method="POST" action="/predict">
+<form method="POST" id="mainForm">
 
     <label>Movie Plot</label>
-    <textarea name="plot" rows="4" required>{{ request.form.get('plot','') }}</textarea>
+    <textarea name="plot" id="plotInput" rows="4" required>
+{{ request.form.get('plot','') }}</textarea>
 
     <div id="characters-container"></div>
 
@@ -19,13 +20,9 @@
 
     <br><br>
 
-    <button type="submit">🎯 Get Actor Suggestions</button>
-</form>
+    <button type="submit" formaction="/predict">🎯 Get Actor Suggestions</button>
+    <button type="submit" formaction="/plot_similarity">📖 Find Similar Plots</button>
 
-<!-- Separate form for plot similarity -->
-<form method="POST" action="/plot_similarity">
-    <input type="hidden" name="plot" value="{{ request.form.get('plot','') }}">
-    <button type="submit">📖 Find Similar Plots</button>
 </form>
 
 {% if results %}
